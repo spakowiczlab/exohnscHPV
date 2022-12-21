@@ -19,7 +19,10 @@ library(ggraph)
 # Load Hallmark results and DESEq2 results
 
 ```{r}
-res2 <- read.table("../data/FGSEA_Hallmark-results.csv", header = T, quote = "\"", sep = ",") %>%
+res2 <- read.table("../data/FGSEA_Hallmark-results.csv", 
+                   header = T, 
+                   quote = "\"", 
+                   sep = ",") %>%
   arrange(pval) %>%
   filter(padj < 0.01)
 
@@ -35,7 +38,8 @@ sig.HPV_DEGs <- read.table("../data/HPV_deseq.genes.txt", header = T) %>%
 ```{r}
 # Determines whether the gene results from FGSEA, are enriched in HPV+ or HPV-
 
-hpv.enriched <- sig.HPV_DEGs %>%
+hpv.enriched <- 
+  sig.HPV_DEGs %>%
   filter(Genes %in% res2$genes) %>%
   dplyr::rename("genes" = Genes) %>%
   select(genes,HPV_stat)
@@ -44,12 +48,14 @@ table(hpv.enriched$HPV_stat)
 
 # Create nodes
 
-hlmrk.pathname <- res2 %>%
+hlmrk.pathname <- 
+  res2 %>%
   select(pathname) %>%
   unique() %>%
   dplyr::rename("nodes_label" = pathname)
 
-hlmrk.genes <- res2 %>%
+hlmrk.genes <- 
+  res2 %>%
   select(genes) %>%
   unique() %>%
   left_join(hpv.enriched) %>%
