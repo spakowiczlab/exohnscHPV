@@ -29,10 +29,10 @@ source("00-paths.R")
 
 read in CIBERSORT results
 ```{r}
-cells <- read.csv(file.path(paths$github, "CIBERSORTx_Job12_Results.csv")) %>%
+cells <- read.csv("../data/CIBERSORTx_Job12_Results.csv") %>%
   select(-P.value, -Correlation, -RMSE)
 
-clin <- read.csv(file.path(paths$box, "tcga_clinical.csv")) %>%
+clin <- read.csv(file.path(paths$onedrive, "data", "tcga_clinical.csv")) %>%
   select(file_id.expression, file_id.BAM) %>%
   rename(
     'sample' = file_id.BAM,
@@ -40,7 +40,7 @@ clin <- read.csv(file.path(paths$box, "tcga_clinical.csv")) %>%
   )
   
 # why is one sample dropped? 
-hpv <- read.csv(file.path(paths$github, "HPV-prevalence-per-sample.csv"))
+hpv <- read.csv("../data/HPV-prevalence-per-sample.csv")
 ```
 
 fix names
@@ -73,6 +73,31 @@ collabs <- c("Naive B-cells", "Memory B-cells", "Plasma cells", "CD8+ T-cells", 
 
 rownames(results_table) <- collabs
 results
+```
+
+Write the full output to a table.
+```{r}
+results_table_join <- 
+  results_table %>%
+  rownames_to_column("name") %>%
+  bind_cols(names(cells[2:23])) %>%
+  rename("cell" = "...3")
+
+cells_median  <- 
+  cells %>%
+  gather(-HPV.prev, -sample, key = "cell", value = "abundance") %>%
+  group_by(HPV.prev, cell) %>%
+  summarize(median = median(abundance)) %>%
+  spread(key = HPV.prev, value = median) %>%
+  bind_cols(collabs) %>%
+ full_join(results_table_join) %>%
+  select("name", "0", "1", "p-value") %>%
+  rename("HPV-" = "0",
+         "HPV+" = "1")
+
+write.csv(cells_median,
+          file = "../data/immune-cells_by_HPV_median_pvalue.csv", 
+          row.names = FALSE)
 ```
 
 
