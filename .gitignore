@@ -51,3 +51,4 @@ rsconnect/
 # Spakowicz lab file path conventions
 00-paths.R
 exohnscHPV.json
+exploratory/scripts/00-paths.R
