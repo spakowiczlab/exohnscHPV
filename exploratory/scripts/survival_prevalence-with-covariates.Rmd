@@ -3,6 +3,9 @@ title: 'Survival: prevalence with covariates'
 author: "Rebecca Hoyd"
 date: "7/26/2021"
 output: html_document
+
+edited: "CW filter to subset of microbes and update paths"
+date: "3/6/2023"
 ---
 
 ```{r setup, include=FALSE}
@@ -10,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(dplyr)
 library(survival)
-library(survminer)
+#(survminer)
 library(ggplot2)
 library(tibble)
 library(tidyr)
@@ -25,13 +28,11 @@ data.dir <- "/fs/ess/PAS1695/projects/HNSC/data/drake-output/7-15-2021"
 exora <- read.csv(file.path(data.dir, "7-15-2021_tcga_exora-with-taxonomy.csv"), stringsAsFactors = F)
 clin <- read.csv(file.path(data.dir, "7-15-2021_tcga_clinical.csv"), stringsAsFactors = F)
 
-rcounts <- read.table("/fs/ess/PAS1695/generate-inputs/TCGA-processing/data/HNSC/k2bout.txt",
+rcounts <- read.table("/fs/ess/PAS1695/generate-inputs_v1/TCGA-processing/data/HNSC/k2bout.txt",
                       stringsAsFactors = F, header = T, sep = "\t")
-
 ```
 
 # Functions
-
 ```{r}
 extract_coxph_results <- function(cp.form, int.term.name, dattab){
     tmp <- coxph(as.formula(cp.form), data = dattab) %>%
@@ -74,19 +75,20 @@ prev.in %>%
 goodsamps <- intersect(exora$sample, clin$file_id.BAM)
 length(goodsamps)
 
-# prevfun.in <- rcounts %>%
-#   column_to_rownames(var = "sample") %>%
-#   as.matrix()
-# 
-# rarprev <- counts_to_rarefied_prevalenc(prevfun.in)
+prevfun.in <- rcounts %>%
+  column_to_rownames(var = "sample") %>%
+  as.matrix()
 
-# Ask CW for write privilege
+
+# rarprev <- counts_to_rarefied_prevalenc(prevfun.in)
+# 
+# # Ask CW for write privilege
 # write.csv(rarprev, "/fs/ess/PAS1695/projects/HNSC/data/rarefied-prevalence_all-TCGA-samps.csv",
 #           row.names = F)
 # write.csv(rarprev, "../data/rarefied-prevalence_all-TCGA-samps.csv",
 #           row.names = F)
 
-rarprev <- read.csv("../data/rarefied-prevalence_all-TCGA-samps.csv")
+rarprev <- read.csv("/fs/ess/PAS1695/projects/HNSC/data/rarefied-prevalence_all-TCGA-samps.csv")
 ```
 
 ```{r get names of microbes with nonzero prevalence}
@@ -95,7 +97,6 @@ microbes <- names(subset(testprev, testprev > 0))
 ```
 
 # Object for loop
-
 ```{r}
 surv.in <- clin %>%
   rename("sample" = "file_id.BAM") %>%
@@ -181,3 +182,24 @@ agg.prev <- rarprev %>%
 table(agg.prev$HPV.prev)
 write.csv(agg.prev, "../data/HPV-prevalence-per-sample.csv", row.names = F)
 ```
+
+
+### filter to microbes present in at least 10 samples and p.value < 0.05
+
+# read in previously constructed survival table
+```{r}
+surv <- read.csv("../data/survival_multivar-microbes.csv")
+```
+
+```{r}
+surv.new <- surv %>%
+    filter(samples.with.microbe > 9,
+           p.value < 0.05) %>%
+    mutate(padj.FDR = p.adjust(p.value, "fdr"))
+```
+
+```{r}
+write.csv(surv.new, "../data/survival_multivar-microbes_filtered.csv")
+```
+
+
