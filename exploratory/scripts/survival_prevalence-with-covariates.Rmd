@@ -30,6 +30,11 @@ clin <- read.csv(file.path(data.dir, "7-15-2021_tcga_clinical.csv"), stringsAsFa
 
 rcounts <- read.table("/fs/ess/PAS1695/generate-inputs_v1/TCGA-processing/data/HNSC/k2bout.txt",
                       stringsAsFactors = F, header = T, sep = "\t")
+
+# taxa key
+krakenmet = read.delim("/fs/ess/PAS1695/exoticpipe/external-data/kraken2-metaphlan-taxonomy.txt",
+                         header = F, stringsAsFactors = F) %>%
+    rename("Taxonomy" = "V1")
 ```
 
 # Functions
@@ -55,7 +60,6 @@ extract_coxph_results <- function(cp.form, int.term.name, dattab){
 }
 ```
 
-# Set up prevalence
 
 I was going to  try to use a prevalence value from the normalized exora data, but the histogram looks a bit weird. Let's work with the raw counts instead.
 ```{r try working with exora}
@@ -91,10 +95,57 @@ prevfun.in <- rcounts %>%
 rarprev <- read.csv("/fs/ess/PAS1695/projects/HNSC/data/rarefied-prevalence_all-TCGA-samps.csv")
 ```
 
+# Get all taxon levels, select genus level
+
+# if this works just get rid of unclasside
+```{r}
+taxkey <- krakenmet %>%
+  dplyr::filter(grepl("s__", Taxonomy)) %>%
+  mutate(microbe = gsub(".*s__(.*)", "\\1", Taxonomy),
+          microbe = make.names(microbe)) %>%
+  select(microbe, Taxonomy)
+
+temp <- gather(rarprev, microbe, prev, 2:6374, factor_key=TRUE)
+
+# check that no samps are lost #obs temp = temp2 
+temp2 <- merge(temp, taxkey, by="microbe")
+
+rarprev <- temp2 %>%
+    mutate(domain = gsub("(d__\\w+).*", "\\1", Taxonomy),
+           kingdom = ifelse(grepl("k__", Taxonomy),gsub(".*(k__\\w+).*", "\\1", Taxonomy), NA),
+           phylum = ifelse(grepl("p__", Taxonomy),gsub(".*(p__\\w+).*", "\\1", Taxonomy), NA),
+           order = ifelse(grepl("o__", Taxonomy),gsub(".*(o__\\w+).*", "\\1", Taxonomy), NA),
+           class = ifelse(grepl("c__", Taxonomy),gsub(".*(c__\\w+).*", "\\1", Taxonomy), NA),
+           family = ifelse(grepl("f__", Taxonomy),gsub(".*(f__\\w+).*", "\\1", Taxonomy), NA),
+           genus = ifelse(grepl("g__", Taxonomy),gsub(".*(g__\\w+).*", "\\1", Taxonomy), NA),
+           species = ifelse(grepl("s__", Taxonomy),gsub(".*(s__.*)", "\\1", Taxonomy), NA)) %>%
+  # for our purposes here just select genus
+    dplyr::select(sample, genus, prev)
+```
+
+summarize genus prev
+```{r}
+rarprev <- rarprev %>%
+  # mutate(genus = gsub(" ", "_", genus)) %>%
+  # mutate(genus = gsub("[", "_", genus, fixed=TRUE)) %>%
+  # mutate(genus = gsub("]", "_", genus, fixed=TRUE)) %>%
+  filter(!is.na(genus)) %>%
+  group_by(sample, genus) %>%
+  summarize(prev = sum(prev)) %>%
+  mutate(prev = ifelse(prev > 0, 1, 0)) %>%
+  rename("microbe" = genus) 
+
+# long to wide
+rarprev <- spread(rarprev, microbe, prev)  
+```
+
+
 ```{r get names of microbes with nonzero prevalence}
 testprev <- colSums(rarprev[,-1])
 microbes <- names(subset(testprev, testprev > 0))
 ```
+
+
 
 # Object for loop
 ```{r}
@@ -136,6 +187,7 @@ forms <- paste0("Surv(days, vitalstatus) ~ ", microbes, " + ", covars.string)
 names(forms) <- microbes
 ```
 
+
 ```{r The big survival calculation}
 multivar.cph.ls <- lapply(microbes, function(x) extract_coxph_results(forms[[x]], x, surv.in))
 multivar.cph <- bind_rows(multivar.cph.ls)
@@ -162,7 +214,7 @@ multivar.withns <- multivar.cph %>%
 ```
 
 ```{r}
-write.csv(multivar.withns, "../data/survival_multivar-microbes.csv", row.names = F)
+write.csv(multivar.withns, "../data/survival_multivar-microbes_genus.csv", row.names = F)
 ```
 
 # Aggregating Alphapappilomavirus
@@ -199,7 +251,7 @@ surv.new <- surv %>%
 ```
 
 ```{r}
-write.csv(surv.new, "../data/survival_multivar-microbes_filtered.csv")
+write.csv(surv.new, "../data/survival_multivar-microbes_genus_filtered.csv")
 ```
 
 
