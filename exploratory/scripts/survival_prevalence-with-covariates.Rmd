@@ -96,8 +96,6 @@ rarprev <- read.csv("/fs/ess/PAS1695/projects/HNSC/data/rarefied-prevalence_all-
 ```
 
 # Get all taxon levels, select genus level
-
-# if this works just get rid of unclasside
 ```{r}
 taxkey <- krakenmet %>%
   dplyr::filter(grepl("s__", Taxonomy)) %>%
@@ -111,7 +109,7 @@ temp <- gather(rarprev, microbe, prev, 2:6374, factor_key=TRUE)
 temp2 <- merge(temp, taxkey, by="microbe")
 
 rarprev <- temp2 %>%
-    mutate(domain = gsub("(d__\\w+).*", "\\1", Taxonomy),
+  mutate(domain = gsub("(d__\\w+).*", "\\1", Taxonomy),
            kingdom = ifelse(grepl("k__", Taxonomy),gsub(".*(k__\\w+).*", "\\1", Taxonomy), NA),
            phylum = ifelse(grepl("p__", Taxonomy),gsub(".*(p__\\w+).*", "\\1", Taxonomy), NA),
            order = ifelse(grepl("o__", Taxonomy),gsub(".*(o__\\w+).*", "\\1", Taxonomy), NA),
@@ -119,6 +117,7 @@ rarprev <- temp2 %>%
            family = ifelse(grepl("f__", Taxonomy),gsub(".*(f__\\w+).*", "\\1", Taxonomy), NA),
            genus = ifelse(grepl("g__", Taxonomy),gsub(".*(g__\\w+).*", "\\1", Taxonomy), NA),
            species = ifelse(grepl("s__", Taxonomy),gsub(".*(s__.*)", "\\1", Taxonomy), NA)) %>%
+  mutate(genus = ifelse(is.na(genus), paste0("g__unclassified_", microbe), genus)) %>%
   # for our purposes here just select genus
     dplyr::select(sample, genus, prev)
 ```
@@ -131,7 +130,7 @@ rarprev <- rarprev %>%
   # mutate(genus = gsub("]", "_", genus, fixed=TRUE)) %>%
   filter(!is.na(genus)) %>%
   group_by(sample, genus) %>%
-  summarize(prev = sum(prev)) %>%
+  dplyr::summarise(prev = sum(prev)) %>%
   mutate(prev = ifelse(prev > 0, 1, 0)) %>%
   rename("microbe" = genus) 
 
@@ -251,7 +250,8 @@ surv.new <- surv %>%
 ```
 
 ```{r}
-write.csv(surv.new, "../data/survival_multivar-microbes_genus_filtered.csv")
+write.csv(surv.new, "../data/survival_multivar-microbes_filtered.csv")
+#write.csv(surv.new, "../data/survival_multivar-microbes_genus_filtered.csv")
 ```
 
 
