@@ -14,12 +14,14 @@ library(Hmisc)
 library(ggforce)
 library(forcats)
 library(stringr)
+library(ggrepel)
 ```
 
 # load data
 
 ```{r}
 surv.res <- read.csv("../data/survival_multivar-microbes.csv", stringsAsFactors = F)
+surv.res.filt <- read.csv("../data/survival_multivar-microbes_filtered.csv", stringsAsFactors = F)
 data.dir <- "/fs/ess/PAS1695/projects/HNSC/data/drake-output/7-15-2021"
 # exora <- read.csv(file.path(data.dir, "7-15-2021_tcga_exora-with-taxonomy.csv"), stringsAsFactors = F)
 ```
@@ -80,7 +82,7 @@ assign_taxonomy <- function(met.all, exo.obj){
 ```{r}
 alphapaps <- paste0("Alphapapillomavirus.", c(5,6,9,7,11))
 
-surv.plotin <- surv.res %>%
+surv.plotin <- surv.res.filt %>%
   mutate(nlogp = -log(p.value),
          logHR = log(hazard.ratio),
          alphapap = term %in% alphapaps) %>%
@@ -93,7 +95,8 @@ surv.plotin <- surv.res %>%
 
 ```{r}
 surv.plotin %>%
-  ggplot(aes(x = logHR, y = nlogp, color = domain, size = alphapap, shape = alphapap, alpha = alphapap)) +
+  ggplot(aes(x = logHR, y = nlogp, color = domain, size = alphapap, shape = alphapap, alpha = alphapap, label=term)) +
+  geom_label_repel(color = "black") +
   geom_point() +
   geom_hline(yintercept = -log(0.05), lty = 2) +
   geom_vline(xintercept = 0, lty = 2) +
@@ -103,7 +106,7 @@ surv.plotin %>%
   labs(x = "log(HR)", y = "-log(p.value)") +
   guides(size = FALSE, shape = FALSE, alpha = FALSE) +
   theme_bw() 
-ggsave("../figures/volcano_survival-multivariate.png")
+ggsave("../figures/volcano_survival-multivariate_filtered.png")
 ```
 
 # Add KM curve for aggregated HPV
@@ -134,5 +137,5 @@ survin <- hpv.prev %>%
 surv.obj <- surv_fit(Surv(days, vitalstatus) ~ HPV.prev, data = survin )
 
 survplot <- ggsurvplot(surv.obj, pval = T, risk.table = T)
-ggsave(plot = print(survplot), filename = "../figures/KM-curve_aggregated-HPV.png", device = "png")
+#ggsave(plot = print(survplot), filename = "../figures/KM-curve_aggregated-HPV.png", device = "png")
 ```
