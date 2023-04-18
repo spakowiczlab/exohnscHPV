@@ -29,10 +29,10 @@ hpv.volc.dat <- HPV_deseq.genes %>%
   mutate(diffexp = ifelse(is.na(diffexp), yes = "NO", no = diffexp))
 
 hpv.volc.dat %>%
-  ggplot(aes(x = log2FoldChange, y = -log10(pvalue), col = diffexp)) +
+  ggplot(aes(x = -log2FoldChange, y = -log10(pvalue), col = diffexp)) +
   geom_point() +
   geom_text_repel(data=subset(hpv.volc.dat, log2FoldChange < -3.5 | log2FoldChange > 3.5),
-                        aes(x = log2FoldChange, y = -log10(pvalue), label = Genes),
+                        aes(x = -log2FoldChange, y = -log10(pvalue), label = Genes),
                   colour = "black", size = 2.5, fontface= 2, box.padding = 1.0, max.overlaps = Inf) +
   geom_hline(yintercept = 0.05, color = "red", linetype = 2) +
   geom_vline(xintercept = c(-2.5,2.5), color = "red", linetype = 2) +
@@ -40,7 +40,7 @@ hpv.volc.dat %>%
                       values = c("orange", "purple", "grey"),
                       label  = c("Enriched", "Depleted", "Not Significant"),
                       name   = "Genes")+
-  ggtitle("HPV - Positive vs Negative") +
+  ggtitle("HPV - Negative vs. Postive") +
   theme(legend.key.size = unit(0.5, 'cm'),
         legend.title = element_text(size=10),
         legend.text = element_text(size=10)) +

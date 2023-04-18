@@ -31,16 +31,17 @@ hpv.volc.dat <- HPV_deseq.microbes %>%
   mutate(diffexp = ifelse(is.na(diffexp), yes = "NO", no = diffexp)) %>%
   mutate(tax_class = ifelse(log2FoldChange > 1.0 & -log10(pvalue) > 3, yes = tax_class,
                      ifelse(log2FoldChange < -1.0 & -log10(pvalue) > 3, yes = tax_class, no = NA))) %>%
-  mutate(tax_class = ifelse(is.na(tax_class), yes = "NO", no = tax_class)) 
+  mutate(tax_class = ifelse(is.na(tax_class), yes = "NO", no = tax_class)) %>%
+  mutate(neglog2FoldChange = -log2FoldChange)
 
 tax.labels <- hpv.volc.dat %>%
   subset(log2FoldChange < -1.0 | log2FoldChange > 1.0) %>%
   subset(-log10(pvalue) > 3)
   
 hpv.volc.dat %>%
-  ggplot(aes(x = log2FoldChange, y = -log10(pvalue), col = diffexp)) +
-  geom_point(data= hpv.volc.dat, aes(x=log2FoldChange, y=-log10(pvalue), color= tax_class),size=2) +
-  geom_text_repel(data = tax.labels, aes(x = log2FoldChange, y = -log10(pvalue), label = Taxonomy),
+  ggplot(aes(x = -log2FoldChange, y = -log10(pvalue), col = diffexp)) +
+  geom_point(data= hpv.volc.dat, aes(x= -log2FoldChange, y=-log10(pvalue), color= tax_class),size=2) +
+  geom_text_repel(data = tax.labels, aes(x = -log2FoldChange, y = -log10(pvalue), label = Taxonomy),
                   colour = "black", size = 2, fontface= 1, box.padding = 1.0, max.overlaps = Inf) +
   geom_hline(yintercept = 3, color = "red", linetype = 2) +
   geom_vline(xintercept = c(-1.0,1.0), color = "red", linetype = 2) +
