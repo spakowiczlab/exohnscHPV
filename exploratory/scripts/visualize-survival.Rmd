@@ -105,7 +105,7 @@ surv.plotin %>%
   scale_color_brewer(palette = "Set1") +
   scale_shape_manual(breaks = c(F,T), values = c(20, 18)) +
   scale_alpha_manual(values = c(.5,1)) +
-  labs(x = "log(HR)", y = "-log(p.value)") +
+  labs(x = "-log(HR)", y = "-log(p.value)") +
   guides(size = FALSE, shape = FALSE, alpha = FALSE) +
   theme_bw() 
 ggsave("../figures/volcano_survival-multivariate_filtered.png")
