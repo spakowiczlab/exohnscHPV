@@ -119,7 +119,7 @@ library(survival)
 library(survminer)
 
 clin <- read.csv(file.path(data.dir, "7-15-2021_tcga_clinical.csv"), stringsAsFactors = F)
-hpv.prev <- read.csv("../data/HPV-prevalence-per-sample.csv", stringsAsFactors = F)
+hpv.prev <- read.csv("../data/HPV-prevalence-per-sample_ALLpaps.csv", stringsAsFactors = F)
 
 ```
 
@@ -140,5 +140,5 @@ survin <- hpv.prev %>%
 surv.obj <- surv_fit(Surv(days, vitalstatus) ~ HPV.prev, data = survin )
 
 survplot <- ggsurvplot(surv.obj, pval = T, risk.table = T)
-#ggsave(plot = print(survplot), filename = "../figures/KM-curve_aggregated-HPV.png", device = "png")
+ggsave(plot = print(survplot), filename = "../figures/KM-curve_aggregated-HPV_ALLpaps.png", device = "png")
 ```

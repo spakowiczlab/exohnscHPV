@@ -4,8 +4,10 @@ author: "Rebecca Hoyd"
 date: "7/26/2021"
 output: html_document
 
-edited: "CW filter to subset of microbes and update paths"
+edited: "CW - filter to subset of microbes and update paths"
 date: "3/6/2023"
+
+edited: "CW - update hpv.prev to include all pap"
 ---
 
 ```{r setup, include=FALSE}
@@ -95,7 +97,7 @@ prevfun.in <- rcounts %>%
 rarprev <- read.csv("/fs/ess/PAS1695/projects/HNSC/data/rarefied-prevalence_all-TCGA-samps.csv")
 ```
 
-# Get all taxon levels, select genus level
+# Get all taxon levels, select species level, can change to genus level...
 ```{r}
 taxkey <- krakenmet %>%
   dplyr::filter(grepl("s__", Taxonomy)) %>%
@@ -117,22 +119,26 @@ rarprev <- temp2 %>%
            family = ifelse(grepl("f__", Taxonomy),gsub(".*(f__\\w+).*", "\\1", Taxonomy), NA),
            genus = ifelse(grepl("g__", Taxonomy),gsub(".*(g__\\w+).*", "\\1", Taxonomy), NA),
            species = ifelse(grepl("s__", Taxonomy),gsub(".*(s__.*)", "\\1", Taxonomy), NA)) %>%
-  mutate(genus = ifelse(is.na(genus), paste0("g__unclassified_", microbe), genus)) %>%
+  mutate(species = ifelse(is.na(genus), paste0("g__unclassified_", microbe), genus))
   # for our purposes here just select genus
-    dplyr::select(sample, genus, prev)
+    #dplyr::select(sample, genus, prev)
 ```
 
 summarize genus prev
 ```{r}
 rarprev <- rarprev %>%
-  # mutate(genus = gsub(" ", "_", genus)) %>%
-  # mutate(genus = gsub("[", "_", genus, fixed=TRUE)) %>%
-  # mutate(genus = gsub("]", "_", genus, fixed=TRUE)) %>%
-  filter(!is.na(genus)) %>%
-  group_by(sample, genus) %>%
-  dplyr::summarise(prev = sum(prev)) %>%
-  mutate(prev = ifelse(prev > 0, 1, 0)) %>%
-  rename("microbe" = genus) 
+  rename("microbe" = species)
+
+# use if genus level
+# rarprev <- rarprev %>%
+#   # mutate(genus = gsub(" ", "_", genus)) %>%
+#   # mutate(genus = gsub("[", "_", genus, fixed=TRUE)) %>%
+#   # mutate(genus = gsub("]", "_", genus, fixed=TRUE)) %>%
+#   filter(!is.na(genus)) %>%
+#   group_by(sample, genus) %>%
+#   dplyr::summarise(prev = sum(prev)) %>%
+#   mutate(prev = ifelse(prev > 0, 1, 0)) %>%
+#   rename("microbe" = genus) 
 
 # long to wide
 rarprev <- spread(rarprev, microbe, prev)  
@@ -238,9 +244,7 @@ write.csv(agg.prev, "../data/HPV-prevalence-per-sample.csv", row.names = F)
 
 ```{r}
 test <- colnames(rarprev)
- test[grep("papillo", test)]
-
-to.agg <- paste0("Alphapapillomavirus.", c(5,6,9,7,11))
+to.agg <- test[grep("papillo", test)]
 
 agg.prev <- rarprev %>%
   dplyr::select('sample', to.agg) %>%
@@ -249,7 +253,7 @@ agg.prev <- rarprev %>%
   summarise(HPV.prev = max(prev))
 
 table(agg.prev$HPV.prev)
-write.csv(agg.prev, "../data/HPV-prevalence-per-sample.csv", row.names = F)
+write.csv(agg.prev, "../data/HPV-prevalence-per-sample_ALLpaps.csv", row.names = F)
 ```
 
 
