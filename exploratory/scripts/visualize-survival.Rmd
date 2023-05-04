@@ -140,5 +140,6 @@ survin <- hpv.prev %>%
 surv.obj <- surv_fit(Surv(days, vitalstatus) ~ HPV.prev, data = survin )
 
 survplot <- ggsurvplot(surv.obj, pval = T, risk.table = T)
+
 ggsave(plot = print(survplot), filename = "../figures/KM-curve_aggregated-HPV_ALLpaps.png", device = "png")
 ```
