@@ -1,0 +1,118 @@
+---
+title: "Figure 3. Cox Hazard Proportional Model (Zoomed)"
+output: html_document
+author: R Hoyd
+edits: C Wheeler, Malven
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(ggplot2)
+library(tibble)
+library(tidyr)
+library(Hmisc)
+library(ggforce)
+library(forcats)
+library(stringr)
+library(ggrepel)
+```
+
+# load data
+
+```{r}
+surv.res <- read.csv("../data/survival_multivar-microbes.csv", stringsAsFactors = F)
+surv.res.filt <- read.csv("../data/survival_multivar-microbes_filtered.csv", stringsAsFactors = F)
+data.dir <- "/fs/ess/PAS1695/projects/HNSC/data/drake-output/7-15-2021"
+# exora <- read.csv(file.path(data.dir, "7-15-2021_tcga_exora-with-taxonomy.csv"), stringsAsFactors = F)
+```
+
+```{r}
+krakenmet <- read.delim("/fs/ess/PAS1695/exoticpipe/external-data/kraken2-metaphlan-taxonomy.txt",
+                         header = F, stringsAsFactors = F) %>%
+    rename("Taxonomy" = "V1")
+```
+
+```{r}
+assign_taxonomy <- function(met.all, exo.obj){
+  met.good <- met.all %>%
+    dplyr::filter(!grepl("\n", Taxonomy))
+  met.fix <- met.all %>%
+    dplyr::filter(grepl("\n", Taxonomy)) 
+  
+  fix.taxa.amalgam <- paste(met.fix$Taxonomy, collapse = "\n")
+  fix.taxa.split <- str_split(pattern = "\n", fix.taxa.amalgam)[[1]]
+  met.repared <- as.data.frame(cbind(Taxonomy = fix.taxa.split,
+                                     V2 = 1))%>%
+    tidyr::separate(Taxonomy, into = c("Taxonomy"), sep = "\t") %>%
+    mutate(V2 = as.numeric(as.character(V2)))
+  
+  taxkey <- bind_rows(met.good, met.repared) %>%
+    dplyr::filter(grepl("s__", Taxonomy)) %>%
+    mutate(specjoin = gsub(".*s__(.*)", "\\1", Taxonomy),
+           specjoin = make.names(specjoin))
+  
+  exo.obj.tax <- exo.obj %>%
+    mutate(specjoin = microbe)%>%
+    left_join(taxkey) %>%
+    mutate(domain = gsub("(d__\\w+).*", "\\1", Taxonomy),
+           kingdom = ifelse(grepl("k__", Taxonomy),gsub(".*(k__\\w+).*", "\\1", Taxonomy), NA),
+           phylum = ifelse(grepl("p__", Taxonomy),gsub(".*(p__\\w+).*", "\\1", Taxonomy), NA),
+           order = ifelse(grepl("o__", Taxonomy),gsub(".*(o__\\w+).*", "\\1", Taxonomy), NA),
+           class = ifelse(grepl("c__", Taxonomy),gsub(".*(c__\\w+).*", "\\1", Taxonomy), NA),
+           family = ifelse(grepl("f__", Taxonomy),gsub(".*(f__\\w+).*", "\\1", Taxonomy), NA),
+           genus = ifelse(grepl("g__", Taxonomy),gsub(".*(g__\\w+).*", "\\1", Taxonomy), NA),
+           species = gsub(".*(s__.*)", "\\1", Taxonomy)
+    ) %>%
+    mutate(genus = ifelse(is.na(genus), paste0("g__unclassified-", species), genus),
+           family = ifelse(is.na(family), paste0("f__unclassified-", gsub("g__unclassified-", "", genus)), family),
+           order = ifelse(is.na(order), paste0("o__unclassified-", gsub("f__unclassified-", "", family)), order),
+           class = ifelse(is.na(class), paste0("c__unclassified-", gsub("o__unclassified-", "", order)), class),
+           phylum = ifelse(is.na(phylum), paste0("p__unclassified-", gsub("c__unclassified-", "", class)),phylum),
+           kingdom = ifelse(is.na(kingdom), paste0("k__unclassified-", gsub("p__unclassified-", "", phylum)), kingdom),
+           domain = ifelse(is.na(domain), paste0("d__unclassified-", gsub("k__unclassified-", "", kingdom)), domain)) %>%
+    dplyr::select(-V2)
+  
+  return(exo.obj.tax)
+  
+}
+```
+
+# Format
+
+```{r}
+
+alphapaps <- paste0("Alphapapillomavirus.", c(5,6,9,7,11))
+
+surv.plotin <- surv.res.filt %>%
+  mutate(nlogp = -log(p.value),
+         logHR = log(hazard.ratio),
+         alphapap = term %in% alphapaps) %>%
+  dplyr::filter(confint.high < Inf | confint.low > 0) %>%
+  mutate(microbe = term) %>%
+  assign_taxonomy(krakenmet, .) %>%
+  mutate(domain.labels = substr(domain, 4, nchar(domain)))
+
+```
+
+# Try volcano version
+
+```{r}
+
+# Figure 3 - Volcano Survival Multivariate Genus Filtered
+
+surv.plotin %>%
+  ggplot(aes(x = -logHR, y = nlogp, color = domain.labels, size = alphapap, shape = alphapap, alpha = alphapap, label=term)) +
+  geom_label_repel(color = "black") +
+  geom_point() +
+  geom_hline(yintercept = -log(0.05), lty = 2) +
+  geom_vline(xintercept = 0, lty = 2) +
+  scale_color_brewer(palette = "Set1") +
+  scale_shape_manual(breaks = c(F,T), values = c(20, 18)) +
+  scale_alpha_manual(values = c(.5,1)) +
+  labs(x = "-log(HR)", y = "-log(p.value)", color = "Domain") +
+  guides(size = "none", shape = "none", alpha = "none") +
+  theme_bw() 
+ggsave("../figures/figure3-volcano_survival-multivariate_filtered.png", dpi = 300)
+```

@@ -1,0 +1,95 @@
+---
+title: "Figure 2. Cox Hazard Proportional Model"
+author: "Caroline Wheeler"
+edits : "Malven - November 2023"
+date: "4/6/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(ggplot2)
+library(tibble)
+library(tidyr)
+library(Hmisc)
+library(ggforce)
+library(forcats)
+library(stringr)
+library(ggrepel)
+```
+
+```{r}
+surv.res <- read.csv("../data/survival_multivar-microbes_genus_filtered.csv", stringsAsFactors = F)
+surv.res.unfilt <- read.csv("../data/survival_multivar-microbes_genus.csv", stringsAsFactors = F)
+
+data.dir <- "/fs/ess/PAS1695/projects/HNSC/data/drake-output/7-15-2021"
+
+krakenmet <- read.delim("/fs/ess/PAS1695/exoticpipe/external-data/kraken2-metaphlan-taxonomy.txt",
+                         header = F, stringsAsFactors = F) %>%
+    rename("Taxonomy" = "V1")
+```
+
+
+```{r}
+taxkey <- krakenmet %>%
+  dplyr::filter(grepl("s__", Taxonomy)) %>%
+  mutate(microbe = gsub(".*s__(.*)", "\\1", Taxonomy),
+          microbe = make.names(microbe)) %>%
+  select(microbe, Taxonomy)
+
+taxkey <- taxkey %>%
+  mutate(domain = gsub("(d__\\w+).*", "\\1", Taxonomy),
+           term = ifelse(grepl("g__", Taxonomy),gsub(".*(g__\\w+).*", "\\1", Taxonomy), NA)) %>%
+  mutate(term = ifelse(is.na(term), paste0("g__unclassified_", microbe), term)) %>%
+  select(domain, term) %>%
+  distinct()
+```
+
+```{r}
+surv.plotin <- merge(surv.res, taxkey) %>%
+  mutate(nlogp = -log(p.value),
+         logHR = -log(hazard.ratio),
+         alphapap = term == "g__Alphapapillomavirus") %>%
+  dplyr::filter(confint.high < Inf | confint.low > 0) %>%
+  mutate(microbe = substr(term, 4, nchar(term)),
+         domain = substr(domain, 4, nchar(domain)),
+         g_label = ifelse(domain == "Viruses" | domain == "Eukaryota", microbe, 
+                          ifelse(padj.FDR < 0.0466, microbe, NA)))
+  
+
+surv.plotin2 <- merge(surv.res.unfilt, taxkey) %>%
+  mutate(nlogp = -log(p.value),
+         logHR = -log(hazard.ratio),
+         alphapap = term == "g__Alphapapillomavirus") %>%
+  dplyr::filter(confint.high < Inf | confint.low > 0) %>%
+  mutate(microbe = substr(term, 4, nchar(term)),
+         domain = substr(domain, 4, nchar(domain)),
+         g_label = ifelse(domain == "Viruses" | domain == "Eukaryota", microbe, 
+                          ifelse(padj.FDR < 0.0466, microbe, NA)))
+  
+```
+
+```{r}
+
+# Figure 2 - Volcano Survival Multivariate Genus Unfiltered
+
+surv.plotin2 %>%
+  ggplot(aes(x = logHR, y = nlogp, color = domain, size = alphapap, shape = alphapap, alpha = alphapap, label = microbe)) +
+  geom_label_repel(color = "black", size = 2, fontface = 1) +
+  geom_point() +
+  geom_hline(yintercept = -log(0.05), lty = 2) +
+  geom_vline(xintercept = 0, lty = 2) +
+  scale_shape_manual(breaks = c(F,T), values = c(20, 18)) +
+  scale_alpha_manual(values = c(.5,1)) +
+  scale_color_manual(values=c("cyan4","cornflowerblue", "darkgoldenrod2","deeppink4")) +
+  labs(x = "-log(HR)", y = "-log(p.value)", color = "Domain") +
+  guides(size = "none", shape = "none", alpha = "none") +
+  theme_bw() 
+
+ggsave("../figures/figure2-volcano_survival-multivariate_genus_unfiltered.png", height = 4, width = 7, dpi = 300, device = "png")
+
+```
+
+
