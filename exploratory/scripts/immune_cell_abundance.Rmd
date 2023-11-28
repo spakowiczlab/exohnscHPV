@@ -17,16 +17,6 @@ setwd(dirname(getwd()))
 source("00-paths.R")
 ```
 
-<!-- read in gene expression data -->
-<!-- ```{r} -->
-<!-- genes <- read.csv(file.path(paths$box, "tcga_gene-expressions.csv"))  -->
-<!-- ``` -->
-
-<!-- create matrix for CIBERSORT -->
-<!-- ```{r} -->
-<!-- write.table(genes, "/Users/wheeler.1017/Documents/GitHub/exohnsc/exploratory/data/cibersort_exohnsc.txt", sep = "\t", quote = FALSE, row.names = FALSE) -->
-<!-- ``` -->
-
 read in CIBERSORT results
 ```{r}
 cells <- read.csv("../data/CIBERSORTx_Job12_Results.csv") %>%
@@ -126,8 +116,9 @@ bp <- ggplot(cells, aes(x=variable, y=value)) + geom_boxplot(aes(fill=HPV.prev))
 bp
 
 ```
+
 save plot
 ```{r}
-ggsave(filename = "/Users/wheeler.1017/Documents/projects_rando/hnsc_immunecell_boxplot.png", plot = bp, width = 14, height = 10, dpi = 600)
+ggsave(filename = "../figures/hnsc_immunecell_boxplot.png", plot = bp, width = 14, height = 10, dpi = 600)
 ```
 
