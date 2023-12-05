@@ -14,22 +14,30 @@ library(reshape2)
 knitr::opts_chunk$set(echo = TRUE)
 
 setwd(dirname(getwd()))
-source("00-paths.R")
+# source("00-paths.R")
 ```
+
+CW read in and save cleaned version for Malven
+```{r}
+# clin <- read.csv(file.path(paths$onedrive, "data", "tcga_clinical.csv")) %>%
+#   select(file_id.expression, file_id.BAM) %>%
+#   rename(
+#     'sample' = file_id.BAM,
+#     'sample1' = file_id.expression,
+#   )
+# 
+# write.csv(clin, "../data/file_id_BAM-expression_link.csv")
+```
+
 
 read in CIBERSORT results
 ```{r}
 cells <- read.csv("../data/CIBERSORTx_Job12_Results.csv") %>%
   select(-P.value, -Correlation, -RMSE)
 
-clin <- read.csv(file.path(paths$onedrive, "data", "tcga_clinical.csv")) %>%
-  select(file_id.expression, file_id.BAM) %>%
-  rename(
-    'sample' = file_id.BAM,
-    'sample1' = file_id.expression,
-  )
+clin <- read.csv("../data/file_id_BAM-expression_link.csv")
   
-# why is one sample dropped? 
+# Looks like this HPV prev table only contains 499 samples, but there are 500 in the files above 
 hpv <- read.csv("../data/HPV-prevalence-per-sample.csv")
 ```
 
