@@ -1,5 +1,5 @@
 ---
-title: "Figure 3. Cox Hazard Proportional Model (Zoomed)"
+title: "Figure 1. Kaplan-Meier Curve and Figure 3. Cox Hazard Proportional Model (Zoomed) - HPV"
 output: html_document
 author: R Hoyd
 edits: C Wheeler, Malven
@@ -104,7 +104,7 @@ surv.plotin <- surv.res.filt %>%
 
 surv.plotin %>%
   ggplot(aes(x = -logHR, y = nlogp, color = domain.labels, size = alphapap, shape = alphapap, alpha = alphapap, label=term)) +
-  geom_label_repel(color = "black") +
+  geom_label_repel(color = "black", size = 4, max.overlaps = 8) +
   geom_point() +
   geom_hline(yintercept = -log(0.05), lty = 2) +
   geom_vline(xintercept = 0, lty = 2) +
@@ -113,6 +113,62 @@ surv.plotin %>%
   scale_alpha_manual(values = c(.5,1)) +
   labs(x = "-log(HR)", y = "-log(p.value)", color = "Domain") +
   guides(size = "none", shape = "none", alpha = "none") +
-  theme_bw() 
-ggsave("../figures/figure3-volcano_survival-multivariate_filtered.png", dpi = 300)
+  theme_bw() +
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.title = element_text(size = 11),
+        legend.text = element_text(size = 10))
+
+ggsave("../figures/figure3-volcano_survival-multivariate_filtered.png", dpi = 300, width = 9, height = 7)
+```
+# Need to update KM curve 12/03/23
+# We should probably include all papillomavirus genera (looks like the following includes only Alphapap) and change timeline to years.
+# Add KM curve for aggregated HPV
+
+```{r}
+library(survival)
+library(survminer)
+
+clin <- read.csv(file.path(data.dir, "7-15-2021_tcga_clinical.csv"), stringsAsFactors = F)
+hpv.prev <- read.csv("../data/HPV-prevalence-per-sample_ALLpaps.csv", stringsAsFactors = F)
+
+```
+
+```{r}
+survin <- hpv.prev %>%
+  rename("file_id.BAM" = "sample") %>%
+  left_join(clin) %>%
+  mutate(smoking = ifelse(pack_years_smoked >= 10, 1, 0),
+         smoking = ifelse(is.na(smoking), 0, smoking),
+         age = age_at_diagnosis/365.25,
+         days = coalesce(days_to_death, days_to_last_follow_up),
+         months =  round(days/30.417, digit=0),
+         vitalstatus = ifelse(vital_status == "Dead", 1, 0),
+         survstage = ifelse(grepl("IV", ajcc_clinical_stage), "Stage IV", ajcc_clinical_stage)) %>%
+  drop_na(days, vitalstatus)
+```
+
+```{r}
+surv.obj <- surv_fit(Surv(months, vitalstatus) ~ HPV.prev, data = survin )
+
+survplot <- ggsurvplot(surv.obj, 
+                       pval = T, 
+                       risk.table = T,
+                       break.x.by = c(12), 
+                       xlim = c(0, 60),
+                       
+                       # Change legends: title & labels
+                       legend.title = "",
+                       legend.labs = c("HPV Negative", "HPV Positive"),
+                       ggtheme = theme_bw()) + 
+  xlab("Months") 
+
+
+# Save KM-curve as png
+
+grid.draw.ggsurvplot <- function(x){
+  survminer:::print.ggsurvplot(x, newpage = FALSE)
+}
+
+ggsave("../figures/figure1-KM-curve_aggregated-HPV_ALLpaps.png", plot = survplot, dpi=300, width = 9, height = 9)
+
 ```

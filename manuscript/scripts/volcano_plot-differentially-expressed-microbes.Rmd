@@ -38,22 +38,25 @@ hpv.volc.dat <- HPV_deseq.microbes %>%
 
 tax.labels <- hpv.volc.dat %>%
   subset(log2FoldChange < -1.0 | log2FoldChange > 1.0) %>%
-  subset(-log10(pvalue) > 3)
+  subset(-log10(pvalue) > 9 | diffexp == "UP")
   
 hpv.volc.dat %>%
   ggplot(aes(x = -log2FoldChange, y = -log10(pvalue), col = diffexp)) +
   geom_point(data= hpv.volc.dat, aes(x= -log2FoldChange, y=-log10(pvalue), color= tax_class),size=2) +
   geom_label_repel(data = tax.labels, aes(x = -log2FoldChange, y = -log10(pvalue), label = Taxa.labels),
-                  colour = "black", size = 3, fontface= 1, box.padding = 0.5, max.overlaps = Inf, force = 2.5) +
-  geom_hline(yintercept = 3, color = "red", linetype = 2) +
-  geom_vline(xintercept = c(-1.0,1.0), color = "red", linetype = 2) +
+                  colour = "black", size = 4, fontface= 1, alpha = 0.5, force = 4, max.overlaps = Inf) +
+  geom_hline(yintercept = 3, color = "black", linetype = 2) +
+  geom_vline(xintercept = c(-1.0,1.0), color = "black", linetype = 2) +
   scale_color_manual( breaks = c("class", "family", "genus", "kingdom", "order", "phlyum", "species", "NO"),
                       values = c("orange", "purple", "blue", "green", "red", "yellow", "pink", "grey"),
                       label  = c("class", "family", "genus", "kingdom", "order", "phlyum", "species", "not significant"),
                       name   = "Taxa") +
-  theme_bw() 
+  theme_bw() +
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.title = element_text(size = 11),
+        legend.text = element_text(size = 10)) 
  
 
-ggsave("../figures/figure4-differentially_expressed_microbes.png", width = 9, height = 9, dpi = 300, device = "png")
+ggsave("../figures/figure4-differentially_expressed_microbes.png", width = 9, height = 7, dpi = 300, device = "png")
 ```
   
