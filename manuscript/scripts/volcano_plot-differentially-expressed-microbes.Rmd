@@ -51,11 +51,10 @@ hpv.volc.dat %>%
                       values = c("orange", "purple", "blue", "green", "red", "yellow", "pink", "grey"),
                       label  = c("class", "family", "genus", "kingdom", "order", "phlyum", "species", "not significant"),
                       name   = "Taxa") +
-  theme_bw() +
+  theme_bw(base_size = 12) +
   theme(legend.key.size = unit(0.5, "cm"),
         legend.title = element_text(size = 11),
         legend.text = element_text(size = 10)) 
- 
 
 ggsave("../figures/figure4-differentially_expressed_microbes.png", width = 9, height = 7, dpi = 300, device = "png")
 ```

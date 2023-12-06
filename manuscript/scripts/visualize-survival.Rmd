@@ -113,13 +113,13 @@ surv.plotin %>%
   scale_alpha_manual(values = c(.5,1)) +
   labs(x = "-log(HR)", y = "-log(p.value)", color = "Domain") +
   guides(size = "none", shape = "none", alpha = "none") +
-  theme_bw() +
+  theme_bw(base_size = 12) +
   theme(legend.key.size = unit(0.5, "cm"),
         legend.title = element_text(size = 11),
         legend.text = element_text(size = 10))
-
 ggsave("../figures/figure3-volcano_survival-multivariate_filtered.png", dpi = 300, width = 9, height = 7)
 ```
+
 # Need to update KM curve 12/03/23
 # We should probably include all papillomavirus genera (looks like the following includes only Alphapap) and change timeline to years.
 # Add KM curve for aggregated HPV
@@ -148,6 +148,9 @@ survin <- hpv.prev %>%
 ```
 
 ```{r}
+
+# Figure 1 - Kaplan-Meier Curve Aggregated - HPV ALLpaps
+
 surv.obj <- surv_fit(Surv(months, vitalstatus) ~ HPV.prev, data = survin )
 
 survplot <- ggsurvplot(surv.obj, 
@@ -159,7 +162,7 @@ survplot <- ggsurvplot(surv.obj,
                        # Change legends: title & labels
                        legend.title = "",
                        legend.labs = c("HPV Negative", "HPV Positive"),
-                       ggtheme = theme_bw()) + 
+                       ggtheme = theme_bw(base_size = 12)) + 
   xlab("Months") 
 
 
@@ -169,6 +172,6 @@ grid.draw.ggsurvplot <- function(x){
   survminer:::print.ggsurvplot(x, newpage = FALSE)
 }
 
-ggsave("../figures/figure1-KM-curve_aggregated-HPV_ALLpaps.png", plot = survplot, dpi=300, width = 9, height = 9)
+ggsave("../figures/figure1-KM-curve_aggregated-HPV_ALLpaps.png", plot = survplot, dpi=300, width = 7, height = 7)
 
 ```
