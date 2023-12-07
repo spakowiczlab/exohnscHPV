@@ -1,5 +1,5 @@
 ---
-title: "immune_cell_abundance"
+title: "Figure 5. Immune Cell Abundance by HPV"
 author: "Caroline Wheeler"
 date: "9/28/2021"
 edits: "Malven - December 2023"
@@ -133,7 +133,7 @@ bp <- ggplot(cells, aes(x=variable, y=value)) + geom_boxplot(aes(fill=HPV.prev))
 bp
 
 # save plot
-ggsave(filename = "../figures/figure5_hnsc_immunecell_boxplot.png", plot = bp, width = 8, height = 6, dpi = 300)
+ggsave(filename = "../figures/figure5_hnsc_immunecell_boxplot.png", plot = bp, width = 7, height = 6, dpi = 300)
 
 ```
 
