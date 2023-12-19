@@ -1,7 +1,8 @@
 ---
-title: "immune_cell_abundance"
+title: "Figure 5. Immune Cell Abundance by HPV"
 author: "Caroline Wheeler"
 date: "9/28/2021"
+edits: "Malven - December 2023"
 output: html_document
 ---
 
@@ -35,7 +36,8 @@ read in CIBERSORT results
 cells <- read.csv("../data/CIBERSORTx_Job12_Results.csv") %>%
   select(-P.value, -Correlation, -RMSE)
 
-clin <- read.csv("../data/file_id_BAM-expression_link.csv")
+clin <- read.csv("../data/file_id_BAM-expression_link.csv") %>%
+  select(sample1, sample)
   
 # Looks like this HPV prev table only contains 499 samples, but there are 500 in the files above 
 hpv <- read.csv("../data/HPV-prevalence-per-sample.csv")
@@ -115,18 +117,23 @@ cells <- cells %>%
 
 Boxplot to visualize
 ```{r}
+# Figure 5 - Immune Cell Abundance of HPV+ and HPV-
+
 #hpv.labs <- c("HPV negative", "HPV positive")
 #names(hpv.labs) <- c("0", "1")
 #bp <- bp + facet_grid(. ~ HPV.prev, labeller = labeller(HPV.prev = hpv.labs)) 
 
-bp <- ggplot(cells, aes(x=variable, y=value)) + geom_boxplot(aes(fill=HPV.prev)) + xlab("") + ylab("Abundance") + labs(fill = "") + theme_bw(base_size = 18) + theme(axis.text.x = element_text(angle = 45, hjust=1))
+bp <- ggplot(cells, aes(x=variable, y=value)) + geom_boxplot(aes(fill=HPV.prev)) + 
+      xlab("") + ylab("Abundance") + labs(fill = "") + theme_bw(base_size = 12) + 
+      theme(legend.key.size = unit(0.5, "cm"),
+            legend.title = element_text(size = 11),
+            legend.text = element_text(size = 10), 
+            axis.text.x = element_text(angle = 45, hjust = 1)) 
 
 bp
 
-```
+# save plot
+ggsave(filename = "../figures/figure5_hnsc_immunecell_boxplot.png", plot = bp, width = 7, height = 6, dpi = 300)
 
-save plot
-```{r}
-ggsave(filename = "../figures/hnsc_immunecell_boxplot.png", plot = bp, width = 14, height = 10, dpi = 600)
 ```
 

@@ -1,0 +1,86 @@
+---
+title: "body plot histogram"
+author: "Caroline Wheeler"
+date: "6/22/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(gganatogram)
+library(tidyverse)
+library(viridis)
+library(gridExtra)
+library(readxl)
+
+source("assignLocs.R")
+```
+
+Read in microbe data
+```{r}
+taxa <- read.csv("/fs/ess/PAS1695/projects/exorien/data/drake-output/2022-03-16/2022-03-16_RA-with-taxonomy.csv") 
+clin <- read_excel("/fs/ess/PAS1695/projects/exorien/data/clinical/20PRJ060OSU_20210707_ClinicalMolLinkage_V4_as-in-drake.xlsx") %>%
+  select("ORIENAvatarKey", "RNASeq", "Primary/Met", "SpecimenSiteOfCollection", "TCGA.code") %>%
+  rename("site" = "SpecimenSiteOfCollection",
+         "sample" = "RNASeq")
+```
+
+select microbe
+```{r}
+mic <- taxa %>%
+    filter(microbe == "Bifidobacterium.bifidum") %>%
+    select(sample, exo.ra)
+```
+
+```{r}
+clin <- assignLocs(clin)
+```
+
+```{r}
+body <- merge(mic, clin) %>%
+  group_by(organ) %>%
+  summarize(value = mean(exo.ra))
+```
+
+count number of samples
+```{r}
+sampCount <- clin %>%
+  select(organ) %>%
+  filter(!is.na(organ)) 
+
+sampCount <- as.data.frame(table(sampCount)) %>%
+  rename("organ" = sampCount)
+```
+
+filter out organ locations with less than 8 samples
+```{r}
+body <- merge(body, sampCount) %>%
+  filter(Freq > 7)
+```
+
+#customize order of organs
+```{r}
+organ_order <- c("skin", "adipose_tissue","small_intestine", "breast", "lung", "heart", "brain", "skeletal_muscle", "liver", "colon", "kidney", "stomach", "pancreas", "lymph_node", "bone", "adrenal_gland", "spleen", "nose", "salivary_gland", "thyroid_gland", "urinary_bladder", "rectum", "vagina", "uterus", "ovary")
+
+body <- body %>%
+  arrange(match(organ, organ_order), desc(value))
+```
+
+Body plot 
+```{r}
+female <- gganatogram(data=body, fillOutline="white", organism="human", sex="female", fill="value") +
+  theme_void() +
+  scale_fill_viridis()
+
+
+female 
+
+ggsave("../figures/gganato_bifido.svg", height = 10, width = 7, dpi=500)
+```
+
+
+
+
+
+

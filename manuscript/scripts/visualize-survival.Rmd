@@ -1,8 +1,8 @@
 ---
-title: "visualize survival"
+title: "Figure 1. Kaplan-Meier Curve and Figure 3. Cox Hazard Proportional Model (Zoomed) - HPV"
 output: html_document
 author: R Hoyd
-edits: C Wheeler
+edits: C Wheeler, Malven
 ---
 
 ```{r setup, include=FALSE}
@@ -82,6 +82,7 @@ assign_taxonomy <- function(met.all, exo.obj){
 # Format
 
 ```{r}
+
 alphapaps <- paste0("Alphapapillomavirus.", c(5,6,9,7,11))
 
 surv.plotin <- surv.res.filt %>%
@@ -90,29 +91,36 @@ surv.plotin <- surv.res.filt %>%
          alphapap = term %in% alphapaps) %>%
   dplyr::filter(confint.high < Inf | confint.low > 0) %>%
   mutate(microbe = term) %>%
-  assign_taxonomy(krakenmet, .)
+  assign_taxonomy(krakenmet, .) %>%
+  mutate(domain.labels = substr(domain, 4, nchar(domain)))
+
 ```
 
 # Try volcano version
 
 ```{r}
+
+# Figure 3 - Volcano Survival Multivariate Genus Filtered
+
 surv.plotin %>%
-  ggplot(aes(x = -logHR, y = nlogp, color = domain, size = alphapap, shape = alphapap, alpha = alphapap, label=term)) +
-  geom_label_repel(color = "black") +
+  ggplot(aes(x = -logHR, y = nlogp, color = domain.labels, size = alphapap, shape = alphapap, alpha = alphapap, label=term)) +
+  geom_label_repel(color = "black", size = 4, max.overlaps = 8) +
   geom_point() +
   geom_hline(yintercept = -log(0.05), lty = 2) +
   geom_vline(xintercept = 0, lty = 2) +
   scale_color_brewer(palette = "Set1") +
   scale_shape_manual(breaks = c(F,T), values = c(20, 18)) +
   scale_alpha_manual(values = c(.5,1)) +
-  labs(x = "-log(HR)", y = "-log(p.value)") +
-  guides(size = FALSE, shape = FALSE, alpha = FALSE) +
-  theme_bw() 
-ggsave("../figures/volcano_survival-multivariate_filtered.png")
+  labs(x = "-log(HR)", y = "-log(p.value)", color = "Domain") +
+  guides(size = "none", shape = "none", alpha = "none") +
+  theme_bw(base_size = 12) +
+  theme(legend.key.size = unit(0.5, "cm"),
+        legend.title = element_text(size = 11),
+        legend.text = element_text(size = 10))
+ggsave("../figures/figure3-volcano_survival-multivariate_filtered.png", dpi = 300, width = 9, height = 7)
 ```
 
-
-# Need to update KM curve 4/18/23
+# Need to update KM curve 12/03/23
 # We should probably include all papillomavirus genera (looks like the following includes only Alphapap) and change timeline to years.
 # Add KM curve for aggregated HPV
 
@@ -140,6 +148,9 @@ survin <- hpv.prev %>%
 ```
 
 ```{r}
+
+# Figure 1 - Kaplan-Meier Curve Aggregated - HPV ALLpaps
+
 surv.obj <- surv_fit(Surv(months, vitalstatus) ~ HPV.prev, data = survin )
 
 survplot <- ggsurvplot(surv.obj, 
@@ -151,13 +162,16 @@ survplot <- ggsurvplot(surv.obj,
                        # Change legends: title & labels
                        legend.title = "",
                        legend.labs = c("HPV Negative", "HPV Positive"),
-                       ggtheme = theme_bw()) + 
+                       ggtheme = theme_bw(base_size = 12)) + 
   xlab("Months") 
-  
 
-pdf("../figures/KM-curve_aggregated-HPV_ALLpaps.pdf")
-print(survplot, newpage = FALSE)
-dev.off()
 
-# ggsave(plot = print(survplot), filename = "../figures/KM-curve_aggregated-HPV_ALLpaps.png", device = "png")
+# Save KM-curve as png
+
+grid.draw.ggsurvplot <- function(x){
+  survminer:::print.ggsurvplot(x, newpage = FALSE)
+}
+
+ggsave("../figures/figure1-KM-curve_aggregated-HPV_ALLpaps.png", plot = survplot, dpi=300, width = 7, height = 7)
+
 ```
