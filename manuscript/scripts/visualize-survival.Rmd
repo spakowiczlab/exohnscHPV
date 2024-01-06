@@ -1,5 +1,5 @@
 ---
-title: "Figure 1. Kaplan-Meier Curve and Figure 3. Cox Hazard Proportional Model (Zoomed) - HPV"
+title: "Figure 1. Kaplan-Meier Curve Aggregated - HPV ALLpaps and Figure 3. Cox Hazard Proportional Model - Survival Multivariate Genus Filtered"
 output: html_document
 author: R Hoyd
 edits: C Wheeler, Malven
@@ -17,15 +17,16 @@ library(ggforce)
 library(forcats)
 library(stringr)
 library(ggrepel)
+library(survival)
+library(survminer)
 ```
 
-# load data
+# Load Data
 
 ```{r}
 surv.res <- read.csv("../data/survival_multivar-microbes.csv", stringsAsFactors = F)
 surv.res.filt <- read.csv("../data/survival_multivar-microbes_filtered.csv", stringsAsFactors = F)
 data.dir <- "/fs/ess/PAS1695/projects/HNSC/data/drake-output/7-15-2021"
-# exora <- read.csv(file.path(data.dir, "7-15-2021_tcga_exora-with-taxonomy.csv"), stringsAsFactors = F)
 ```
 
 ```{r}
@@ -82,7 +83,6 @@ assign_taxonomy <- function(met.all, exo.obj){
 # Format
 
 ```{r}
-
 alphapaps <- paste0("Alphapapillomavirus.", c(5,6,9,7,11))
 
 surv.plotin <- surv.res.filt %>%
@@ -93,15 +93,12 @@ surv.plotin <- surv.res.filt %>%
   mutate(microbe = term) %>%
   assign_taxonomy(krakenmet, .) %>%
   mutate(domain.labels = substr(domain, 4, nchar(domain)))
-
 ```
 
 # Try volcano version
 
 ```{r}
-
 # Figure 3 - Volcano Survival Multivariate Genus Filtered
-
 surv.plotin %>%
   ggplot(aes(x = -logHR, y = nlogp, color = domain.labels, size = alphapap, shape = alphapap, alpha = alphapap, label=term)) +
   geom_label_repel(color = "black", size = 4, max.overlaps = 8) +
@@ -125,15 +122,9 @@ ggsave("../figures/figure3-volcano_survival-multivariate_filtered.png", dpi = 30
 # Add KM curve for aggregated HPV
 
 ```{r}
-library(survival)
-library(survminer)
-
 clin <- read.csv(file.path(data.dir, "7-15-2021_tcga_clinical.csv"), stringsAsFactors = F)
 hpv.prev <- read.csv("../data/HPV-prevalence-per-sample_ALLpaps.csv", stringsAsFactors = F)
 
-```
-
-```{r}
 survin <- hpv.prev %>%
   rename("file_id.BAM" = "sample") %>%
   left_join(clin) %>%
@@ -148,9 +139,7 @@ survin <- hpv.prev %>%
 ```
 
 ```{r}
-
 # Figure 1 - Kaplan-Meier Curve Aggregated - HPV ALLpaps
-
 surv.obj <- surv_fit(Surv(months, vitalstatus) ~ HPV.prev, data = survin )
 
 survplot <- ggsurvplot(surv.obj, 
@@ -173,5 +162,4 @@ grid.draw.ggsurvplot <- function(x){
 }
 
 ggsave("../figures/figure1-KM-curve_aggregated-HPV_ALLpaps.png", plot = survplot, dpi=300, width = 7, height = 7)
-
 ```

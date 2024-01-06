@@ -39,7 +39,6 @@ taxaranks <- function(x) {
   
   res <- tcga.exora[, c("sample", "microbe", x, "exo.ra")] %>%
     as.data.frame() %>%
-    #filter(microbe != "Homo.sapiens") %>%
     select(-c("microbe"))
   
   counts <- res %>%
@@ -59,28 +58,11 @@ tax.order <- taxaranks("order")
 tax.family <- taxaranks("family")
 tax.genus <- taxaranks("genus")
 tax.species <- taxaranks("species")
-
 ```
 
 # ColData (Taxa table with HPV_stat design) preparation
 
 ```{r}
-
-# ColData (without TCGA clinical data)
-
-#clin.tax <- function(tax.ranks) {
-  
-#clin.dat <- tax.ranks %>%
-  #rownames_to_column(var = "taxa") %>%
-  #gather(-taxa, key = "sample", value = "counts") %>%
-  #spread(key = "taxa", value = "counts") %>%
-  #left_join(prev) %>%
-  #mutate(HPV_stat = ifelse(HPV.prev == 1, yes = "Pos", no = "Neg")) %>%
-  #select(sample, HPV_stat) %>%
-  #as.data.frame()
-  #drop_na(HPV_stat) 
-#}
-
 # ColData (with TCGA clinical data)
 
 clin.tax <- function(tax.ranks) {
@@ -108,7 +90,6 @@ clin.order <- clin.tax(tax.order)
 clin.fam <- clin.tax(tax.family) 
 clin.genus <- clin.tax(tax.genus) 
 clin.spec <- clin.tax(tax.species) 
-
 ```
 
 # DESeq analysis
@@ -138,12 +119,10 @@ des.order <- taxa.deseq(tax.order, clin.order, "order")
 des.fam <- taxa.deseq(tax.family, clin.fam, "family")
 des.genus <- taxa.deseq(tax.genus, clin.genus, "genus")
 des.spec <- taxa.deseq(tax.species, clin.spec, "species")
-
 ```
 
 # Create a large Taxanomy table containing every dds results from different taxa class
 ```{r}
-
 des.taxanomy <- des.dom %>%
   full_join(des.king) %>%
   full_join(des.phy) %>%
@@ -157,5 +136,4 @@ HPV_deseq.microbes <- des.taxanomy %>%
    arrange(pvalue)
 
 write.table(HPV_deseq.microbes, row.names = F, sep = "\t", quote = F, col.names = T, file = "../data/HPV_deseq.microbes.txt")
-
 ```

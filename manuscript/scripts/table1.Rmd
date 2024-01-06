@@ -1,0 +1,94 @@
+---
+title: "Table 1"
+author: "Malven"
+date: "1/5/2024"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tableone)
+library(lubridate)
+```
+
+read in clinical data and hpv prevalence
+```{r}
+clin <- read.csv("/fs/ess/PAS1695/projects/HNSC/data/drake-output/7-26-2021/7-26-2021_tcga_clinical.csv") %>%
+  rename("Sex" = gender,
+         "Vital Status" = vital_status) %>%
+  unique()
+
+hpv <- read.csv("../data/HPV-prevalence-per-sample.csv") %>%
+  rename("file_id.BAM" = sample) %>%
+  mutate("HPV present" = ifelse(HPV.prev == 1, "Yes", "No"))
+```
+
+table 1 modified
+```{r}
+tab1.mod <- clin %>%
+  inner_join(hpv, by = c("file_id.BAM")) # join with hpv prevalence data 
+
+# List all primary tumor sites and group them according to classes 
+tab1.mod %>%
+  select(primary_site) %>%
+  distinct()
+
+oropharynx.class <- c("Base of tongue", "Oropharynx", "Palate", "Tonsil")
+oralcavity.class <- c("Floor of mouth", "Gum", "Lip","Other and ill-defined sites in lip, oral cavity and pharynx",
+                      "Other and unspecified parts of mouth",
+                      "Other and unspecified parts of tongue")
+larynx.class <- c("Larynx")
+hypopharynx.class <- c("Hypopharynx")
+other.class <- c("Bones, joints and articular cartilage of other and unspecified sites")
+
+# List all clinical stages of cancer 
+tab1.mod %>%
+  select(ajcc_clinical_stage) %>%
+  distinct()
+
+stage1 <- c("Stage I")
+stage2 <- c("Stage II")
+stage3 <- c("Stage III")
+stage4 <- c("Stage IVA", "Stage IVB", "Stage IVC")
+unknown.stage <- NA
+
+# List all vital status
+tab1.mod %>%
+  select(`Vital Status`) %>%
+  table()
+
+# List all HPV prevalence
+tab1.mod %>%
+  select(`HPV present`) %>%
+  table()
+
+tab1.mod <- tab1.mod %>%
+  dplyr::mutate("Age" = age_at_diagnosis/365.25) %>% # convert age from days to years 
+  dplyr::mutate("Primary Site" = case_when(primary_site %in% oropharynx.class ~ "Oropharynx",
+                                           primary_site %in% oralcavity.class ~ "Oral Cavity",
+                                           primary_site %in% larynx.class ~ "Larynx",
+                                           primary_site %in% hypopharynx.class ~ "Hypopharynx",
+                                           primary_site %in% other.class ~ "Other")) %>%
+  dplyr::mutate("Clinical Stage" = case_when(ajcc_clinical_stage %in% stage1 ~ "Stage I",
+                                             ajcc_clinical_stage %in% stage2 ~ "Stage II",
+                                             ajcc_clinical_stage %in% stage3 ~ "Stage III",
+                                             ajcc_clinical_stage %in% stage4 ~ "Stage IV",
+                                             ajcc_clinical_stage %in% unknown.stage ~ "Unknown")) %>%
+  dplyr::mutate("Vital Status" = ifelse(`Vital Status` == "Dead", "Deceased", "Alive")) %>% # rename dead to deceased
+  dplyr::mutate("Gender" = ifelse(`Sex` == "male", yes = "Male", no = "Female")) %>% # rename sex to gender
+  dplyr::select("Age", "Primary Site", "Clinical Stage", "Vital Status", "Gender", everything())
+```
+
+make table one
+```{r}
+variables_listed <- c("Age", "Gender", "Clinical Stage", "Primary Site", "Vital Status", "HPV present")
+
+table1 <- CreateTableOne(vars= variables_listed, data= tab1.mod)
+table1 <- print(table1, showAllLevels = TRUE)
+
+write.csv(table1, "../data/table1.csv")
+```
+
+
