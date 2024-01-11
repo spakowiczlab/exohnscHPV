@@ -46,5 +46,5 @@ hpv.volc.dat %>%
         legend.title = element_text(size = 11),
         legend.text = element_text(size = 10)) 
 
-ggsave("../figures/supp3_volcano_differential-gene-expression.png", width = 9, height = 7, dpi = 300, device = "png")
+ggsave("../figures/supp2_volcano_differential-gene-expression.png", width = 9, height = 7, dpi = 300, device = "png")
 ```

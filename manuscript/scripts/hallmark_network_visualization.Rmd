@@ -118,6 +118,6 @@ ggraph(network.dat, layout = 'fr') +
         legend.title = element_text(size=7),
         legend.text = element_text(size=7))
 
-ggsave("../figures/supp4_hallmark_network_analysis.png", height = 10, width = 10, dpi = 300)
+ggsave("../figures/supp3_hallmark_network_analysis.png", height = 10, width = 10, dpi = 300)
 
 ```
