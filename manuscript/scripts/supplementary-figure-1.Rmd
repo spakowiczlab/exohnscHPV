@@ -57,7 +57,7 @@ rarprev <- read.csv("../data/rarefied-prevalence_all-TCGA-samps.csv")
 
 ```{r}
 surv.in <- clin %>%
-  rename("sample" = "file_id.BAM") %>%
+  dplyr::rename("sample" = "file_id.BAM") %>%
   inner_join(rarprev) %>%
   mutate(smoking = ifelse(pack_years_smoked >= 10, 1, 0),
          smoking = ifelse(is.na(smoking), 0, smoking),

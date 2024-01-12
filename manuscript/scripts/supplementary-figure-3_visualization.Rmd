@@ -1,5 +1,5 @@
 ---
-title: "Supplementary Figure 4. FGSEA Hallmark Network Visualization"
+title: "Supplementary Figure 3. FGSEA Hallmark Network Visualization"
 author: "Malven"
 edits : "Malven - December 2023"
 date: "10/6/2021"
@@ -102,7 +102,7 @@ network.dat <- tbl_graph(nodes = hlmrk.nodes, edges = hlmrk.edges, directed = FA
 network.as.table <- as_tbl_graph(network.dat) 
 network.as.table 
 
-# Supplementary Figure 4 - FGSEA Hallmark Network Visualization
+# Supplementary Figure 3 - FGSEA Hallmark Network Visualization
 
 ggraph(network.dat, layout = 'fr') + 
   geom_edge_link(aes(color = colored)) +

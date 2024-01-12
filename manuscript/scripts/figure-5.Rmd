@@ -53,7 +53,7 @@ for(i in colnames(cells[,2:23])){
 
 results_table <- do.call(rbind.data.frame, results) %>%
   select(p.value) %>%
-  rename("p-value" = p.value)
+  dplyr::rename("p-value" = p.value)
 
 collabs <- c("Naive B-cells", "Memory B-cells", "Plasma cells", "CD8+ T-cells", "Naive CD4 T-cells", "Memory CD4 T-cells, resting", "Memory CD4 T-cells, activated", "Follicular-helper T-cells", "Tregs", "Gamma delta T-cells", "NK cells, resting", "NK cells, activated", "Monocytes", "M0 Macrophages", "M1 Macrophages", "M2 Macrophages", "Dendritic cells, resting", "Dendritic cells, activated", "Mast cells, resting", "Mast cells, activated", "Eosinophils", "Neutrophils")
 
@@ -67,7 +67,7 @@ results_table_join <-
   results_table %>%
   rownames_to_column("name") %>%
   bind_cols(names(cells[2:23])) %>%
-  rename("cell" = "...3")
+  dplyr::rename("cell" = "...3")
 
 cells_median  <- cells %>%
   gather(-HPV.prev, -sample, key = "cell", value = "abundance") %>%
@@ -77,7 +77,7 @@ cells_median  <- cells %>%
   bind_cols(collabs) %>%
  full_join(results_table_join) %>%
   select("name", "0", "1", "p-value") %>%
-  rename("HPV-" = "0",
+  dplyr::rename("HPV-" = "0",
          "HPV+" = "1")
 
 write.csv(cells_median,

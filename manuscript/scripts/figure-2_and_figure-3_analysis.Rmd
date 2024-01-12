@@ -1,5 +1,5 @@
 ---
-title: 'Survival: prevalence with covariates'
+title: 'Figure 2 and Figure 3 - Survival: Prevalence with Covariates (Analysis)'
 author: "Rebecca Hoyd"
 date: "7/26/2021"
 output: html_document
@@ -127,7 +127,7 @@ rarprev <- temp2 %>%
 summarize genus prev
 ```{r}
 rarprev <- rarprev %>%
-  rename("microbe" = species)
+  dplyr::rename("microbe" = species)
 
 # use if genus level
 # rarprev <- rarprev %>%

@@ -1,5 +1,5 @@
 ---
-title: "Supplementary Figure 3. Differentially Expressed Genes by HPV Status (Visualization)"
+title: "Supplementary Figure 2. Differentially Expressed Genes by HPV Status (Visualization)"
 author: "Malven"
 date: "10/6/2021"
 output: html_document
@@ -21,7 +21,7 @@ HPV_deseq.genes <- read.table("../data/HPV_deseq.genes.txt", header = T)
 
 # Volcano Plot
 ```{r}
-# Supplementary Figure 3. Differentially Expressed Genes by HPV Status (Visualization)
+# Supplementary Figure 2. Differentially Expressed Genes by HPV Status (Visualization)
 
 hpv.volc.dat <- HPV_deseq.genes %>%
   mutate(diffexp = ifelse(log2FoldChange > 2.5 & pvalue < 0.05, yes = "UP",

@@ -1,5 +1,5 @@
 ---
-title: "Supplementary Figure 4. Hallmark FGSEA (Analysis)"
+title: "Supplementary Figure 3. Hallmark FGSEA (Analysis)"
 author: "Malven"
 edits : "Malven - December 2023"
 date: "10/3/2021"

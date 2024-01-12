@@ -1,5 +1,5 @@
 ---
-title: "Supplementary Figure 3. Differentially Expressed Genes by HPV Status (Analysis)"
+title: "Supplementary Figure 2. Differentially Expressed Genes by HPV Status (Analysis)"
 author: "Malven"
 edits : "Malven - December 2023"
 date: "10/2/2021"
