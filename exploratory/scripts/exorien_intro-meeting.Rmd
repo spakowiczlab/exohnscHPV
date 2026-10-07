@@ -88,7 +88,8 @@ stacked_plotting <- function(exoking, knames, sord, addit.dat){
 
 # Load data
 ```{r}
-data.dir <- "/fs/ess/PAS1695/projects/HNSC/data/drake-output/7-15-2021"
+source("../../R/cluster-paths.R")
+data.dir <- drake_2021_07_15
 
 clin <- read.csv(file.path(data.dir, "7-15-2021_tcga_clinical.csv"), stringsAsFactors = F)
 exora <- read.csv(file.path(data.dir, "7-15-2021_tcga_exora-with-taxonomy.csv"), stringsAsFactors = F)

@@ -12,12 +12,12 @@ library(tidyverse)
 library(colorspace)
 library(scales)
 library(svglite)
-source("00-paths.R")
+source("../../R/cluster-paths.R")
 ```
 
 read in R object w/ buffa scores for all cancer and HNSC location 
 ```{r}
-comb <- readRDS(file.path(paths$mitoscore, "/data/buffa-mitophagy_tcga-cancer.RData"))
+comb <- readRDS(buffa_tcga_cancer)
 loc <- read.csv("../data/location.csv")
 
 comb <- merge(comb, loc, by="sampleID", all = T) %>%

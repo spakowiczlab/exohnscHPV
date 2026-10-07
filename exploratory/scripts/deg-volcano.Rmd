@@ -13,7 +13,7 @@ library(tidyverse)
 
 # Read in data
 ```{r}
-HPV_deseq.genes <- read.table("../data")
+HPV_deseq.genes <- read.table("../data/HPV_deseq.genes.txt", header = TRUE)
 
 ```
 

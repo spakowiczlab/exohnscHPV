@@ -13,7 +13,8 @@ knitr::opts_chunk$set(echo = TRUE)
 Compare the SLids between the clinical data and datafiles to ensure we have everything.
 
 ```{r cars}
-data.dir <- "/fs/ess/PAS1695/projects/exohnsc/data"
+source("../../R/cluster-paths.R")
+data.dir <- orien_project
 list.files(data.dir)
 ```
 

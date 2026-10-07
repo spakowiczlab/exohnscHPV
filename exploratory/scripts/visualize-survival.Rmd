@@ -7,6 +7,7 @@ edits: C Wheeler
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+source("../../R/cluster-paths.R")
 
 library(dplyr)
 library(ggplot2)
@@ -24,12 +25,12 @@ library(ggrepel)
 ```{r}
 surv.res <- read.csv("../data/survival_multivar-microbes.csv", stringsAsFactors = F)
 surv.res.filt <- read.csv("../data/survival_multivar-microbes_filtered.csv", stringsAsFactors = F)
-data.dir <- "/fs/ess/PAS1695/projects/HNSC/data/drake-output/7-15-2021"
+data.dir <- drake_2021_07_15
 # exora <- read.csv(file.path(data.dir, "7-15-2021_tcga_exora-with-taxonomy.csv"), stringsAsFactors = F)
 ```
 
 ```{r}
-krakenmet <- read.delim("/fs/ess/PAS1695/exoticpipe/external-data/kraken2-metaphlan-taxonomy.txt",
+krakenmet <- read.delim(kraken_taxonomy,
                          header = F, stringsAsFactors = F) %>%
     rename("Taxonomy" = "V1")
 ```

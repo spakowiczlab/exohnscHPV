@@ -12,23 +12,9 @@ library(ggpubr)
 library(reshape2)
 
 knitr::opts_chunk$set(echo = TRUE)
-
-setwd(dirname(getwd()))
-# source("00-paths.R")
 ```
 
-CW read in and save cleaned version for Malven
-```{r}
-# clin <- read.csv(file.path(paths$onedrive, "data", "tcga_clinical.csv")) %>%
-#   select(file_id.expression, file_id.BAM) %>%
-#   rename(
-#     'sample' = file_id.BAM,
-#     'sample1' = file_id.expression,
-#   )
-# 
-# write.csv(clin, "../data/file_id_BAM-expression_link.csv")
-```
-
+The cleaned sample link is stored at `../data/file_id_BAM-expression_link.csv`.
 
 read in CIBERSORT results
 ```{r}

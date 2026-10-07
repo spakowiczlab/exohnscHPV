@@ -13,8 +13,6 @@ library(ggpubr)
 library(reshape2)
 
 knitr::opts_chunk$set(echo = TRUE)
-
-setwd(dirname(getwd()))
 ```
 
 read in CIBERSORT results

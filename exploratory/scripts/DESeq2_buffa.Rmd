@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+source("../../R/cluster-paths.R")
 
 library(tidyverse)
 library(DESeq2)
@@ -18,13 +19,13 @@ library(broom)
 # Load data
 
 ```{r}
-BHscores <- read.csv("/fs/ess/PAS1695/projects/HNSC/data/hnsc_buffa.csv",
+BHscores <- read.csv("../data/hnsc_buffa.csv",
                      stringsAsFactors = F)
 HPVstatus <- read.csv("../data/HPV-prevalence-per-sample.csv",
                       stringsAsFactors = F)
 
-exora <- read.csv("/fs/ess/PAS1695/projects/HNSC/data/drake-output/7-15-2021/7-15-2021_tcga_exora-with-taxonomy.csv", stringsAsFactors = F)
-clin <- read.csv("/fs/ess/PAS1695/projects/HNSC/data/drake-output/7-15-2021/7-15-2021_tcga_clinical.csv", 
+exora <- read.csv(file.path(drake_2021_07_15, "7-15-2021_tcga_exora-with-taxonomy.csv"), stringsAsFactors = F)
+clin <- read.csv(file.path(drake_2021_07_15, "7-15-2021_tcga_clinical.csv"),
                  stringsAsFactors = F) 
 ```
 
